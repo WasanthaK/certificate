@@ -1,0 +1,20 @@
+# Ignore Python virtual environments
+venv/
+
+# Ignore cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore certificates and private keys
+cert-issuer/ca/*.key
+cert-issuer/ca/*.srl
+cert-issuer/user_certs/*.key
+cert-issuer/user_certs/*.csr
+cert-issuer/user_certs/*.crt
+
+# Ignore IDE and system files
+*.swp
+*.DS_Store
+.vscode/

@@ -1,6 +1,6 @@
 import os
 import subprocess
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, send_from_directory, render_template
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -12,7 +12,6 @@ CA_DIR = os.path.join(BASE_DIR, "cert-issuer/ca")
 CA_CERT_PATH = os.path.join(CA_DIR, "ca_cert.crt")
 CA_KEY_PATH = os.path.join(CA_DIR, "ca_private.key")
 
-# Ensure directories exist
 os.makedirs(USER_CERTS_DIR, exist_ok=True)
 os.makedirs(CA_DIR, exist_ok=True)
 
@@ -42,16 +41,21 @@ def create_ca_if_not_exists():
             raise
 
 
+@app.route("/")
+def index():
+    """Render the main page."""
+    return render_template("register.html")
+
+
 @app.route("/upload_csr", methods=["POST"])
 def upload_csr():
     """Sign the uploaded CSR and return the signed certificate."""
-    uploaded_csr = request.files.get("csr_file")
+    uploaded_csr = request.files.get("csr")
     if not uploaded_csr:
         return "CSR file is required!", 400
 
-    csr_filename = uploaded_csr.filename
-    csr_path = os.path.join(USER_CERTS_DIR, csr_filename)
-    cert_path = os.path.join(USER_CERTS_DIR, f"{os.path.splitext(csr_filename)[0]}.crt")
+    csr_path = os.path.join(USER_CERTS_DIR, "uploaded.csr")
+    cert_path = os.path.join(USER_CERTS_DIR, "uploaded.crt")
 
     # Save the uploaded CSR
     uploaded_csr.save(csr_path)
@@ -75,11 +79,11 @@ def upload_csr():
         )
 
         # Return the signed certificate
-        return send_from_directory(USER_CERTS_DIR, os.path.basename(cert_path), as_attachment=True)
+        return send_from_directory(USER_CERTS_DIR, "uploaded.crt", as_attachment=True)
 
     except subprocess.CalledProcessError as e:
         return f"Failed to sign CSR: {e}", 500
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000)
